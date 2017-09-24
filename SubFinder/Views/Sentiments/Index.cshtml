@@ -1,0 +1,53 @@
+﻿@model IEnumerable<SubFinder.Models.Sentiment>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h2>Index</h2>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Polarity)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Unit)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Strength)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.ListId)
+                </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Polarity)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Unit)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Strength)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ListId)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.SentimentId">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.SentimentId">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.SentimentId">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

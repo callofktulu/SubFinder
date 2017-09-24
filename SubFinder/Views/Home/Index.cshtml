@@ -1,108 +1,152 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "SubFinder 1.0 - A subjectivity level detector for environmental studies articles";
+
 }
-
-<div id="myCarousel" class="carousel slide" data-ride="carousel" data-interval="6000">
-    <ol class="carousel-indicators">
-        <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
-        <li data-target="#myCarousel" data-slide-to="1"></li>
-        <li data-target="#myCarousel" data-slide-to="2"></li>
-        <li data-target="#myCarousel" data-slide-to="3"></li>
-    </ol>
-    <div class="carousel-inner" role="listbox">
-        <div class="item active">
-            <img src="~/images/banner1.svg" alt="ASP.NET" class="img-responsive" />
-            <div class="carousel-caption" role="option">
-                <p>
-                    Learn how to build ASP.NET apps that can run anywhere.
-                    <a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkID=525028&clcid=0x409">
-                        Learn More
-                    </a>
-                </p>
-            </div>
-        </div>
-        <div class="item">
-            <img src="~/images/banner2.svg" alt="Visual Studio" class="img-responsive" />
-            <div class="carousel-caption" role="option">
-                <p>
-                    There are powerful new features in Visual Studio for building modern web apps.
-                    <a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkID=525030&clcid=0x409">
-                        Learn More
-                    </a>
-                </p>
-            </div>
-        </div>
-        <div class="item">
-            <img src="~/images/banner3.svg" alt="Package Management" class="img-responsive" />
-            <div class="carousel-caption" role="option">
-                <p>
-                    Bring in libraries from NuGet, Bower, and npm, and automate tasks using Grunt or Gulp.
-                    <a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkID=525029&clcid=0x409">
-                        Learn More
-                    </a>
-                </p>
-            </div>
-        </div>
-        <div class="item">
-            <img src="~/images/banner4.svg" alt="Microsoft Azure" class="img-responsive" />
-            <div class="carousel-caption" role="option">
-                <p>
-                    Learn how Microsoft's Azure cloud platform allows you to build, deploy, and scale web apps.
-                    <a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkID=525027&clcid=0x409">
-                        Learn More
-                    </a>
-                </p>
-            </div>
-        </div>
-    </div>
-    <a class="left carousel-control" href="#myCarousel" role="button" data-slide="prev">
-        <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
-        <span class="sr-only">Previous</span>
-    </a>
-    <a class="right carousel-control" href="#myCarousel" role="button" data-slide="next">
-        <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-        <span class="sr-only">Next</span>
-    </a>
-</div>
-
+@model IndexViewModel
 <div class="row">
-    <div class="col-md-3">
-        <h2>Application uses</h2>
-        <ul>
-            <li>Sample pages using ASP.NET Core MVC</li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkId=518004">Bower</a> for managing client-side libraries</li>
-            <li>Theming using <a href="https://go.microsoft.com/fwlink/?LinkID=398939">Bootstrap</a></li>
-        </ul>
+    <div class="col-md-7">
+        <form method="post" enctype="multipart/form-data" asp-controller="Home" asp-action="Index" id="contact-form">
+            <div class="form-group">
+      
+                    <h3>Upload one .txt article using this form:</h3>
+                    <label class="btn btn-default btn-file">
+                    <input type="file" name="files" />
+                    </label>
+
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Get results" class="btn btn-default btn-primary" />
+             
+            </div>
+        </form>
+        <div hidden="hidden">
+            @if (Model.WordList != null)
+            {
+                double sWT = 0;
+                double oLT = 0;
+
+                foreach (var item in Model.WordList)
+                {
+
+                    if (item.Values != null)
+                    {
+                        if (item.Values.Count > 0)
+                        {
+                            <b>@item.Unit</b>
+                            foreach (var value in item.Values)
+                            {
+                                switch (value.ListId)
+                                {
+                                    case 1:
+                                        sWT = sWT + value.Strength;
+                                        break;
+                                    case 2:
+                                        oLT = oLT + value.Strength;
+                                        break;
+                                }
+                                <i>@value.Strength.ToString() | </i>
+
+                            }
+                        }
+                        else
+                        {
+                            <i>@item.Unit</i>
+                        }
+
+                    }
+                }
+
+                Model.OpinionLexiconResultsWithStrength = ((oLT / Model.OpinionLexiconDetectionCount) / Model.WordList.Count) * 100000;
+                Model.SentiWordNetResultsWithStrength = ((sWT / Model.SentiWordNetDetectionCount) / Model.WordList.Count) * 100000;
+                Model.OpinionLexiconResultsWithStrengthSentence = Model.OpinionLexiconResultsWithStrength * 2.246146136316;
+                Model.SentiWordNetResultsWithStrengthSentence = Model.SentiWordNetResultsWithStrength * 2.246146136316;
+
+            }
+        </div>    
+
+        @if (Model.WordList != null)
+        {
+            <div class="row">
+                <div class="col-md-7">
+                    <h2>Word Level Results</h2>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>SentiWordNet -S</th>
+                                <th>OpinionLexicon -S</th>
+                                <th>SentiWordNet +S</th>
+                                <th>OpinionLexicon +S</th>
+                                <th>Combined</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>@Model.SentiWordNetResults.ToString("#")%</td>
+                                <td>@Model.OpinionLexiconResults.ToString("#")%</td>
+                                <td>@Model.SentiWordNetResultsWithStrength.ToString("#")%</td>
+                                <td>@Model.OpinionLexiconResultsWithStrength.ToString("#")%</td>
+                                <td>@Model.CombinedResults.ToString("#")%</td>
+                            </tr>
+                         
+                        </tbody>
+                    </table>
+                  </div>
+            </div>
+            <div class="row">
+                <div class="col-md-7">
+                    <h2>Sentence Level Results</h2>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>SentiWordNet -S</th>
+                                <th>OpinionLexicon -S</th>
+                                <th>SentiWordNet +S</th>
+                                <th>OpinionLexicon +S</th>
+                                <th>Combined</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>@Model.SentiWordNetResultsSentence.ToString("#")%</td>
+                                <td>@Model.OpinionLexiconResultsSentence.ToString("#")%</td>
+                                <td>@Model.SentiWordNetResultsWithStrengthSentence.ToString("#")%</td>
+                                <td>@Model.OpinionLexiconResultsWithStrengthSentence.ToString("#")%</td>
+                                <td>@Model.CombinedResultsSentence.ToString("#")%</td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
     </div>
-    <div class="col-md-3">
-        <h2>How to</h2>
+    <div class="col-md-5">
+        <h3>SubFinder by Tuğrul Ertürk</h3>
+        <h4>What is SubFinder?</h4>
+            <ul>
+                <li>SubFinder is an automated subjectivity level detector for environmental studies articles. It was created as a part of master's thesis in University of Granada in 2017</li>
+                <li>It uses SentiWordNet, Opinion Lexicon and a custom rules set to determine the subjectivity levels.</li>
+                <li>Detailed explanation and the source code can be accessed <a href="https://github.com/callofktulu">here</a>, on my personal GitHub Page.</li>
+            </ul>
+        <h4>How it Works?</h4>
+            <ul>
+                <li>The application takes one article using the upload form. Then executes the algorithm and provides the results. The detailed explanation of it can be found in this theis (Link will be inserted upon the successful thesis defense)</li>
+            </ul>
+        <h4>Known Bugs</h4>
+            <ul>
+                <li>As indicated in the thesis result section, the sentence level results aren't accurate. A better sentence evaluation method will be implemented in the future updates.</li>
+            </ul>
+        <h4>Acknowledgements</h4>
+            <ul>
+                <li>First and foremost, I would like to express my gratitude to my supervisor, Dr. Pamela Faber Benitez, for her continuous support and guidance throughout this thesis process. Her experience and visionary approach made this work possible. Without her, I would never have finished this thesis. I am also extremely grateful to Claire Marie Peeters for her help and support. Lastly, I would like to thank my family as well as my classmates, whose support helped me immensely in this process. </li>
+            </ul>
         <ul>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkID=398600">Add a Controller and View</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkId=699315">Manage User Secrets using Secret Manager.</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkId=699316">Use logging to log a message.</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkId=699317">Add packages using NuGet.</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkId=699318">Add client packages using Bower.</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkId=699319">Target development, staging or production environment.</a></li>
-        </ul>
-    </div>
-    <div class="col-md-3">
-        <h2>Overview</h2>
-        <ul>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkId=518008">Conceptual overview of what is ASP.NET Core</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkId=699320">Fundamentals of ASP.NET Core such as Startup and middleware.</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkId=398602">Working with Data</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkId=398603">Security</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkID=699321">Client side development</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkID=699322">Develop on different platforms</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkID=699323">Read more on the documentation site</a></li>
-        </ul>
-    </div>
-    <div class="col-md-3">
-        <h2>Run &amp; Deploy</h2>
-        <ul>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkID=517851">Run your app</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkID=517853">Run tools such as EF migrations and more</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkID=398609">Publish to Microsoft Azure Web Apps</a></li>
+            <li>What is it?</li>
+            <li>How to</li>
+            <li>Details</li>
+            <li>Source Code</li>
+            <li>Donation & Contact</li>
         </ul>
     </div>
 </div>
+
